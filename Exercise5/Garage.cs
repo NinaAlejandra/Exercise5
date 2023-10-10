@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace Exercise5
 {
-    internal class Garage<T> : IEnumerable<T> where T : Vehicle
+    public class Garage<T> : IEnumerable<T> where T : Vehicle
     {
         private T[] vehicles; // en privat array som kommer att hålla alla fordon
         private static int count;
@@ -17,17 +17,19 @@ namespace Exercise5
             count = 0;
         }
 
-        public void ParkVehicle(T vehicle)
+        public bool ParkVehicle(T vehicle)
         {
             //logik för att parkera fordon
             if(count < vehicles.Length)
             {
              vehicles[count] = vehicle;
                         count++;
+                return true;
             }
            else
             {
                 Console.WriteLine("Finns ingen ledig plats");
+                return false;
             }
         }
 
