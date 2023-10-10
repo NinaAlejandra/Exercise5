@@ -1,10 +1,16 @@
-﻿namespace Exercise5
+﻿using Exercise5.UserInterface;
+
+namespace Exercise5
 {
     internal class Program
     {
         static void Main(string[] args)
         {
-            Console.WriteLine("Hello, World!");
+            Manager manager = new Manager();
+            manager.run();
+         
         }
+
+        
     }
 }
