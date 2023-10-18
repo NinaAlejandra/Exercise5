@@ -15,20 +15,21 @@ namespace Exercise5Test
             var garage = new Garage<Car>(5);
             var vehicle = new Car("NIN-181", "purple", 4, 3, "Diesel");
             //Act
-            garage.ParkVehicle(vehicle);
+            var res = garage.ParkVehicle(vehicle);
 
             //Assert
             var parkedVehicle = garage.FirstOrDefault();
             Assert.NotNull(parkedVehicle);
             Assert.Equal(vehicle, parkedVehicle);
+            Assert.True(res);
         }
 
         [Fact]
         public void ParkVehicleInvalid()
         {
             //Arrange
-            var garage = new Garage<Car>(5);
-
+            var garage = new Garage<Car>(1);
+            garage.ParkVehicle(new Car("NIN181", "purple", 4, 3, "diesel"));
 
             //Act  
             var result = garage.ParkVehicle(new Car("NIN181", "purple", 4, 3, "diesel"));

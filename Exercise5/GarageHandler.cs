@@ -5,6 +5,7 @@ using System.Diagnostics.Contracts;
 using System.Linq;
 using System.Reflection;
 using System.Text;
+using System.Threading.Channels;
 using System.Threading.Tasks;
 
 namespace Exercise5
@@ -42,31 +43,19 @@ namespace Exercise5
                 switch (choice)
                 {
                     case 1:
-                        Console.WriteLine("Enter registration number:");
-                        string regNumberPlane = Console.ReadLine();
-                        Console.WriteLine("Enter color:");
-                        string colorPlane = Console.ReadLine();
-                        Console.WriteLine("Enter number of doors:");
-                        int numberOfDoorsPlane = int.Parse(Console.ReadLine());
-                        Console.WriteLine("Enter number of wheels");
-                        int numberOfWheelsPlane = int.Parse(Console.ReadLine());
+                        
+                        var props = GetVehiclesCommonProps();
+                       
                         Console.WriteLine("Enter number of engines:");
                         int numberOfEnginesPlane = int.Parse(Console.ReadLine());
 
-                        vehicle = new Airplane(regNumberPlane, colorPlane, numberOfWheelsPlane, numberOfDoorsPlane, numberOfEnginesPlane)as T;
+                        vehicle = new Airplane(props.RegistrationNumber, props.Color, props.NumberOfWheels, props.NumberOfDoors, numberOfEnginesPlane) as T;
                         break;
 
                     case 2:
 
+                        var mprops = GetVehiclesCommonProps();
 
-                        Console.WriteLine("Enter registration number:");
-                        string regNumberBike = Console.ReadLine();
-                        Console.WriteLine("Enter color:");
-                        string colorBike = Console.ReadLine();
-                        Console.WriteLine("Enter number of doors:");
-                        int numberOfDoorsBike = int.Parse(Console.ReadLine());
-                        Console.WriteLine("Enter number of wheels:");
-                        int numberOfWheelsBike = int.Parse(Console.ReadLine());
                         Console.WriteLine("Enter 'true' if crashprotected, otherwise enter 'false':");
 
                         bool IsCrashProtected;
@@ -77,7 +66,7 @@ namespace Exercise5
                             break;
                         }
 
-                        vehicle = new Motorcycle(regNumberBike, colorBike, numberOfWheelsBike, numberOfDoorsBike, IsCrashProtected)as T;
+                        vehicle = new Motorcycle(mprops.RegistrationNumber, mprops.Color, mprops.NumberOfWheels, mprops.NumberOfDoors, IsCrashProtected)as T;
                         break;
 
                     case 3:
@@ -143,11 +132,48 @@ namespace Exercise5
             }
         }
 
+        private VehicleProps GetVehiclesCommonProps()
+        {
+            bool go = true;
+            string regNumber = string.Empty;
+            do
+            {
+                Console.WriteLine("Enter registration number:");
+                regNumber = Console.ReadLine();
+
+                //Validate!!!!
+                var exists = GetVehicleByRegistrationNumber(regNumber);
+                if (exists != null)
+                {
+                    Console.WriteLine("RegNumber exists");
+                }
+                else
+                    go =false;
+                    
+
+            } while (go);
+
+            Console.WriteLine("Enter color:");
+            var color = Console.ReadLine();
+            Console.WriteLine("Enter number of wheels");
+            var numberOfWheels = int.Parse(Console.ReadLine());
+            Console.WriteLine("Enter number of doors:");
+            int numberOfDoors = int.Parse(Console.ReadLine());
+
+            return new VehicleProps()
+            {
+                RegistrationNumber = regNumber,
+                Color = color,
+                NumberOfWheels = numberOfWheels,
+                NumberOfDoors = numberOfDoors
+            };
+        }
+
         public void ListAllVehicles()
         {
             foreach (var vehicle in garage)
             {
-                Console.WriteLine($"{vehicle.GetType().Name} Registration Number: {vehicle.RegistrationNumber}");
+                Console.WriteLine(vehicle);
             }
 
             Console.WriteLine($"\nTotal vehicles in garage: {garage.Count()}");
@@ -178,6 +204,12 @@ namespace Exercise5
                 }
             }
 
+            //garage.GroupBy(v => v.GetType().Name)
+            //      .Select(g => $"{g.Key} {g.Count()}")
+            //      .ToList()
+            //      .ForEach(r => Console.WriteLine(r));
+
+
             //Gå igenom varje par (Fordonstyp och antal) i vår dictionary.
             foreach (var vehicleTypeAndCount in vehicleTypeCounts)
             {
@@ -185,29 +217,59 @@ namespace Exercise5
                 Console.WriteLine($"{vehicleTypeAndCount.Key}: {vehicleTypeAndCount.Value}");
             }
         }
-        public T GetVehicleByRegistrationNumber(string registrationNumber) // metod för hämta ett fordon baserat på registreringsnummer.
+        public T? GetVehicleByRegistrationNumber(string registrationNumber) // metod för hämta ett fordon baserat på registreringsnummer.
         {
-            try
-            {
-
-                foreach (T vehicle in garage)
-                {
-                    if (vehicle != null && vehicle.RegistrationNumber.Replace("-", "").
+            var res = garage.FirstOrDefault(v => v.RegistrationNumber.Replace("-", "").
                         Equals(registrationNumber.Replace("-", ""),
-                        StringComparison.OrdinalIgnoreCase))
-                    {
-                        return vehicle;
-                    }
-                }
-
+                        StringComparison.OrdinalIgnoreCase));
+            if(res == null)
                 Console.WriteLine("No vehicle with that registration number was found");
-                return null;
-            }
-            catch (FormatException)
+
+            return res;
+
+            //try
+            //{
+
+            //    foreach (T vehicle in garage)
+            //    {
+            //        if (vehicle != null && vehicle.RegistrationNumber.Replace("-", "").
+            //            Equals(registrationNumber.Replace("-", ""),
+            //            StringComparison.OrdinalIgnoreCase))
+            //        {
+            //            return vehicle;
+            //        }
+            //    }
+
+            //    Console.WriteLine("No vehicle with that registration number was found") ;
+            //    return null;
+            //}
+            //catch (FormatException)
+            //{
+            //    Console.WriteLine("Invalid registration number. Please try again.");
+            //    return null;
+            //}
+        }
+
+
+        public IEnumerable<T> Search(string searchOnAll)
+        {
+            var props = GetVehiclesCommonProps();
+
+            IEnumerable<T> results = searchOnAll == "All" ? 
+                garage : 
+                garage.Where(v => v.GetType().Name == searchOnAll);
+
+            if (!string.IsNullOrEmpty(props.Color))
             {
-                Console.WriteLine("Invalid registration number. Please try again.");
-                return null;
+                results = results.Where(v => v.Color ==  props.Color);
+            } 
+            
+            if (props.NumberOfWheels != 0)
+            {
+                results = results.Where(v => v.NumberOfWheels ==  props.NumberOfWheels);
             }
+
+            return results;
         }
 
 
@@ -251,8 +313,9 @@ namespace Exercise5
 
         public void PopulateGarage()
         {
+            if(garage.IsFull) Console.WriteLine("Finns ingen ledig plats"); 
 
-            ParkVehicle(new Airplane("AIRE-12", "blue", 2, 4, 2)as T);
+            ParkVehicle(new Airplane("AIRE-12", "blue", 2, 4, 2) as T);
             ParkVehicle(new Motorcycle("BRUM-456", "green", 2, 0, true)as T);
             ParkVehicle(new Car("ABC-123", "red", 4, 5, "Diesel")as T);
             ParkVehicle(new Boat("DEFG-789", "yellow", 0, 1, 15)as T);

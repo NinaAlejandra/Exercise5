@@ -10,7 +10,10 @@ namespace Exercise5
     public class Garage<T> : IEnumerable<T> where T : Vehicle
     {
         private T[] vehicles; // en privat array som kommer att hålla alla fordon
-        private static int count;
+        private int count;
+
+        public bool IsFull => count == vehicles.Length;
+
         public Garage(int capacity)
         {
             vehicles = new T[capacity];
@@ -20,7 +23,7 @@ namespace Exercise5
         public bool ParkVehicle(T vehicle)
         {
             //logik för att parkera fordon
-            if(count < vehicles.Length)
+            if(!IsFull)
             {
              vehicles[count] = vehicle;
                         count++;

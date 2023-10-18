@@ -8,8 +8,8 @@ namespace Exercise5
 {
     public class Vehicle : IVehicle
     {
-        public string? RegistrationNumber { get; set; }
-        public string? Color { get; set; }
+        public string RegistrationNumber { get; set; }
+        public string Color { get; set; }
         public int NumberOfWheels { get; set; }
         public int NumberOfDoors { get; set; }
 
@@ -21,6 +21,11 @@ namespace Exercise5
             Color=color;
             NumberOfWheels=numberOfWheels;
             NumberOfDoors=numberOfDoors;
+        }
+
+        public override string ToString()
+        {
+            return $"{this.GetType().Name} Registration Number: {RegistrationNumber} {Color} {NumberOfWheels}";
         }
 
     }

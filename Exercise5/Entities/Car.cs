@@ -14,5 +14,10 @@ namespace Exercise5.Entities
         {
             FuelType = fuelType;
         }
+
+        public override string ToString()
+        {
+            return base.ToString() + $"{FuelType}";
+        }
     }
 }
